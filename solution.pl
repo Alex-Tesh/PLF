@@ -1,3 +1,23 @@
+% --- 1. Reprezentam schimbarea de stare ---
+opus(stg, dr).
+opus(dr, stg).
+
+% --- 2. Validare ---
+% Invalid daca lupul sta cu capra fara taran
+invalid(stare(Taran, Lup, Capra, _)) :- 
+    Lup == Capra, 
+    Taran \== Lup.
+
+% Invalid daca capra sta cu varza fara taran
+invalid(stare(Taran, _, Capra, Varza)) :- 
+    Capra == Varza, 
+    Taran \== Capra.
+
+% Valid daca nu e invalid
+valid(Stare) :- 
+    \+ invalid(Stare).
+
+
 % --- Mutari posibile ---
 % Taran + Lup.
 mutare(stare(T1, T1, C, V), stare(T2, T2, C, V)) :- 
@@ -25,3 +45,4 @@ rezolva(StareCurenta, Vizitate, [StareCurenta | Drum]) :-
 solutie(Solutie) :-
     StareInitiala = stare(stg, stg, stg, stg),
     rezolva(StareInitiala, [], Solutie).
+    
