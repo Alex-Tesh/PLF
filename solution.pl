@@ -19,6 +19,10 @@ valid(Stare) :-
 
 
 % --- Mutari posibile ---
+% Taran + Taran (se plimba singur)
+mutare(stare(T1, L, C, V), stare(T2, L, C, V)) :- 
+    opus(T1, T2).
+
 % Taran + Lup.
 mutare(stare(T1, T1, C, V), stare(T2, T2, C, V)) :- 
     opus(T1, T2).
