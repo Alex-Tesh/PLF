@@ -49,4 +49,14 @@ rezolva(StareCurenta, Vizitate, [StareCurenta | Drum]) :-
 solutie(Solutie) :-
     StareInitiala = stare(stg, stg, stg, stg),
     rezolva(StareInitiala, [], Solutie).
-    
+% Afisarea detaliata a solutiei ---
+joaca :-
+    solutie(Drum),
+    write('=== SOLUTIA GASITA ==='), nl, nl,
+    afiseaza_drum(Drum, 0).
+
+afiseaza_drum([], _).
+afiseaza_drum([Stare | Rest], Pas) :-
+    afiseaza_stare(Stare, Pas),
+    PasUrmator is Pas + 1,
+    afiseaza_drum(Rest, PasUrmator).
