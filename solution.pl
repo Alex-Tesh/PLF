@@ -60,3 +60,20 @@ afiseaza_drum([Stare | Rest], Pas) :-
     afiseaza_stare(Stare, Pas),
     PasUrmator is Pas + 1,
     afiseaza_drum(Rest, PasUrmator).
+
+afiseaza_stare(stare(T, L, C, V), Pas) :-
+    format('--- Pasul ~w ---~n', [Pas]),
+    
+    write('Malul Stang: '),
+    (T == stg -> write('Taran ') ; true),
+    (L == stg -> write('Lup ') ; true),
+    (C == stg -> write('Capra ') ; true),
+    (V == stg -> write('Varza ') ; true),
+    nl,
+    
+    write('Malul Drept: '),
+    (T == dr -> write('Taran ') ; true),
+    (L == dr -> write('Lup ') ; true),
+    (C == dr -> write('Capra ') ; true),
+    (V == dr -> write('Varza ') ; true),
+    nl, nl.
