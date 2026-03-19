@@ -5,10 +5,14 @@ Problema Lupul, Capra și Varza
 </div>
 
 <div class="nb-cell markdown" name="md2">
-Reprezentarea stării
- - Utilizăm structura: stare(MalTaran, MalLup, MalCapra, MalVarza)
- - Valorile posibile pentru maluri sunt 'stg' (stânga) și 'dr' (dreapta).
- - Definim conceptul de maluri opuse pentru a facilita tranzițiile.
+# Documentație: Problema Luntrașului (Lupul, Capra și Varza)
+
+## Definirea stării și Validare
+
+Starea este reprezentată sub forma stare(Taran, Lup, Capra, Varza).
+
+
+Validarea: Se face prin predicatul valid/1, care interzice configurațiile unde animalele/obiectele lăsate singure se pot mânca între ele (ex: Lupul cu Capra sau Capra cu Varza, în absența Țăranului).
 </div>
 
 <div class="nb-cell program" data-background="true" name="p1">
@@ -17,7 +21,7 @@ opus(dr, stg).
 </div>
 
 <div class="nb-cell markdown" name="md3">
- Validarea stării
+Validarea stării
  
  Definim stările problematice (nesigure) conform enunțului:
  - Lupul mănâncă capra dacă sunt singuri.
@@ -38,22 +42,62 @@ invalid(stare(Taran, _, Capra, Varza)) :-
 % O stare este validă dacă nu se încadrează în regulile de invaliditate.
 valid(Stare) :- 
     \+ invalid(Stare).
-
 </div>
 
 <div class="nb-cell markdown" name="md4">
-Mutări posibile:
-	- Țăranul traversează singur.
-    
-    - Țăranul traversează cu lupul (trebuie să fie pe același mal inițial).
-    
-    - Țăranul traversează cu capra.
-    
-    - Țăranul traversează cu varza.
+## Generarea Mutărilor Posibile
+
+Predicatul `mutare/2` definește toate tranzițiile legale între stări.
+Există exact **4 tipuri de traversări**, fiecare descriind ce poate lua țăranul în barcă.
+
+### Clauza 1 — Țăranul traversează singur
+
+```prolog
+mutare(stare(T1, L, C, V), stare(T2, L, C, V)) :-
+    opus(T1, T2).
+```
+
+Lupul, capra și varza rămân pe același mal (L, C, V neschimbate). Doar poziția
+țăranului se schimbă: T1 → T2.
+
+### Clauza 2 — Țăranul traversează cu lupul
+
+```prolog
+mutare(stare(T1, T1, C, V), stare(T2, T2, C, V)) :-
+    opus(T1, T2).
+```
+
+Condiția că T1 == MalLup este impusă implicit prin unificare în capul clauzei.
+Lupul se mișcă sincronizat cu țăranul.
+
+### Clauza 3 — Țăranul traversează cu capra
+
+```prolog
+mutare(stare(T1, L, T1, V), stare(T2, L, T2, V)) :-
+    opus(T1, T2).
+```
+
+T1 == MalCapra în starea curentă. Capra se mișcă împreună cu țăranul.
+
+### Clauza 4 — Țăranul traversează cu varza
+
+```prolog
+mutare(stare(T1, L, C, T1), stare(T2, L, C, T2)) :-
+    opus(T1, T2).
+```
+
+T1 == MalVarza în starea curentă. Varza se mișcă împreună cu țăranul.
+
+&gt; 🔑 **Tehnica unificării implicite**
+&gt; Clauzele 2, 3, 4 folosesc același atom (`T1`) atât pentru poziția țăranului,
+&gt; cât și pentru poziția entității transportate. Prin unificare, Prolog garantează
+&gt; automat că entitatea și țăranul sunt pe același mal — nu sunt necesare
+&gt; verificări explicite suplimentare.
+
+---
 </div>
 
 <div class="nb-cell program" data-background="true" name="p3">
-
 % Țăranul traversează singur.
 mutare(stare(T1, L, C, V), stare(T2, L, C, V)) :- 
     opus(T1, T2).
@@ -72,11 +116,34 @@ mutare(stare(T1, L, C, T1), stare(T2, L, C, T2)) :-
 </div>
 
 <div class="nb-cell markdown" name="md5">
-Căutarea soluției cu DFS 
+## Implementarea Algoritmului: De ce DFS?
+
+Pentru această problemă, am ales algoritmul DFS (Depth-First Search). Alegerea este fundamentată pe următoarele aspecte:
+Analiză Comparativă: DFS vs. BFS
+
+Criteriu	DFS (Depth-First Search)	BFS (Breadth-First Search)
+Memorie	Eficiență ridicată: Consumă O(d) memorie, stocând doar calea curentă.	Consum ridicat: Trebuie să stocheze toate nodurile de pe un nivel (O(bd)).
+
+Simplitate în Prolog	Nativ: Prolog folosește backtracking și stivă, ceea ce face DFS-ul foarte ușor de scris.	
+
+Complex: Necesită gestionarea manuală a unei cozi (queue).
+
+Optimizare	Găsește prima soluție disponibilă, nu neapărat cea mai scurtă.	Garantează găsirea drumului minim (cel mai mic număr de mutări).
+
+Concluzie: În contextul Prolog, DFS este alegerea naturală deoarece motorul de inferență funcționează exact prin acest mecanism. Deși BFS ar garanta soluția minimă, pentru spațiul mic de stări al acestei probleme (16 combinații posibile), DFS este extrem de rapid și mult mai elegant de implementat.
+
+## Evitarea buclelor infinite
+
+Un risc major în DFS este intrarea într-un ciclu infinit (de exemplu: țăranul trece cu capra pe malul drept și se întoarce imediat cu ea pe malul stâng).
+
+Soluție: Am implementat o listă de stări Vizitate. Înainte de fiecare mutare, verificăm:
+
+   \+ member(StareUrmatoare, Vizitate)
+
+   Această verificare forțează algoritmul să exploreze doar configurații noi, asigurând terminarea programului.
 </div>
 
 <div class="nb-cell program" data-background="true" name="p4">
-
 % Cazul de succes: Toate elementele au ajuns pe malul drept.
 rezolva(stare(dr, dr, dr, dr), _, [stare(dr, dr, dr, dr)]).
 
@@ -95,11 +162,17 @@ solutie(Solutie) :-
 </div>
 
 <div class="nb-cell markdown" name="md6">
-Afisarea solutiei
+## Instrucțiuni de Utilizare
+
+Pentru a rula programul într-un mediu Prolog (ex: SWI-Prolog), încărcați fișierul și executați predicatul:
+Prolog
+
+?- joaca.
+
+Acesta va afișa pas cu pas mișcările țăranului și starea fiecărui mal, de la început până la finalizarea cu succes a transportului.Afisarea solutiei
 </div>
 
 <div class="nb-cell program" data-background="true" name="p5">
-
 joaca :-
     solutie(Drum),
     write('=== SOLUTIA GASITA ==='), nl, nl,
