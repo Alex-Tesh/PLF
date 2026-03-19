@@ -1,0 +1,136 @@
+<div class="notebook">
+
+<div class="nb-cell markdown" name="md1">
+Problema Lupul, Capra și Varza
+</div>
+
+<div class="nb-cell markdown" name="md2">
+Reprezentarea stării
+ - Utilizăm structura: stare(MalTaran, MalLup, MalCapra, MalVarza)
+ - Valorile posibile pentru maluri sunt 'stg' (stânga) și 'dr' (dreapta).
+ - Definim conceptul de maluri opuse pentru a facilita tranzițiile.
+</div>
+
+<div class="nb-cell program" data-background="true" name="p1">
+opus(stg, dr).
+opus(dr, stg).
+</div>
+
+<div class="nb-cell markdown" name="md3">
+ Validarea stării
+ 
+ Definim stările problematice (nesigure) conform enunțului:
+ - Lupul mănâncă capra dacă sunt singuri.
+ - Capra mănâncă varza dacă sunt singure.
+</div>
+
+<div class="nb-cell program" data-background="true" name="p2">
+% Lupul mănâncă capra dacă sunt singuri.
+invalid(stare(Taran, Lup, Capra, _)) :- 
+    Lup == Capra, 
+    Taran \== Lup.
+
+% Capra mănâncă varza dacă sunt singure.
+invalid(stare(Taran, _, Capra, Varza)) :- 
+    Capra == Varza, 
+    Taran \== Capra.
+
+% O stare este validă dacă nu se încadrează în regulile de invaliditate.
+valid(Stare) :- 
+    \+ invalid(Stare).
+
+</div>
+
+<div class="nb-cell markdown" name="md4">
+Mutări posibile:
+	- Țăranul traversează singur.
+    
+    - Țăranul traversează cu lupul (trebuie să fie pe același mal inițial).
+    
+    - Țăranul traversează cu capra.
+    
+    - Țăranul traversează cu varza.
+</div>
+
+<div class="nb-cell program" data-background="true" name="p3">
+
+% Țăranul traversează singur.
+mutare(stare(T1, L, C, V), stare(T2, L, C, V)) :- 
+    opus(T1, T2).
+
+% Țăranul traversează cu lupul (trebuie să fie pe același mal inițial).
+mutare(stare(T1, T1, C, V), stare(T2, T2, C, V)) :- 
+    opus(T1, T2).
+
+% Țăranul traversează cu capra.
+mutare(stare(T1, L, T1, V), stare(T2, L, T2, V)) :- 
+    opus(T1, T2).
+
+% Țăranul traversează cu varza.
+mutare(stare(T1, L, C, T1), stare(T2, L, C, T2)) :- 
+    opus(T1, T2).
+</div>
+
+<div class="nb-cell markdown" name="md5">
+Căutarea soluției cu DFS 
+</div>
+
+<div class="nb-cell program" data-background="true" name="p4">
+
+% Cazul de succes: Toate elementele au ajuns pe malul drept.
+rezolva(stare(dr, dr, dr, dr), _, [stare(dr, dr, dr, dr)]).
+
+% Pasul de căutare recursivă cu DFS
+rezolva(StareCurenta, Vizitate, [StareCurenta | Drum]) :-
+    mutare(StareCurenta, StareUrmatoare),
+    valid(StareUrmatoare),
+    \+ member(StareUrmatoare, Vizitate), % Verificăm să nu ne întoarcem într-o stare anterioară
+    rezolva(StareUrmatoare, [StareCurenta | Vizitate], Drum).
+
+
+% Pornește de la starea inițială în care toți sunt pe malul stâng.
+solutie(Solutie) :-
+    StareInitiala = stare(stg, stg, stg, stg),
+    rezolva(StareInitiala, [], Solutie).
+</div>
+
+<div class="nb-cell markdown" name="md6">
+Afisarea solutiei
+</div>
+
+<div class="nb-cell program" data-background="true" name="p5">
+
+joaca :-
+    solutie(Drum),
+    write('=== SOLUTIA GASITA ==='), nl, nl,
+    afiseaza_drum(Drum, 0).
+
+afiseaza_drum([], _).
+afiseaza_drum([Stare | Rest], Pas) :-
+    afiseaza_stare(Stare, Pas),
+    PasUrmator is Pas + 1,
+    afiseaza_drum(Rest, PasUrmator).
+
+afiseaza_stare(stare(T, L, C, V), Pas) :-
+    format('--- Pasul ~w ---~n', [Pas]),
+    
+    write('Malul Stang: '),
+    (T == stg -&gt; write('Taran ') ; true),
+    (L == stg -&gt; write('Lup ') ; true),
+    (C == stg -&gt; write('Capra ') ; true),
+    (V == stg -&gt; write('Varza ') ; true),
+    nl,
+    
+    write('Malul Drept: '),
+    (T == dr -&gt; write('Taran ') ; true),
+    (L == dr -&gt; write('Lup ') ; true),
+    (C == dr -&gt; write('Capra ') ; true),
+    (V == dr -&gt; write('Varza ') ; true),
+    nl, nl.
+</div>
+
+<div class="nb-cell query" name="q1">
+joaca
+</div>
+
+</div>
